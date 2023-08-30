@@ -53,27 +53,27 @@
                   >
                     Contactos
                   </div>
-
                   <div
                     class="p-3 d-flex border-bottom align-items-center contact"
-                    v-for="contact in filterContacts"
-                    :key="contact.id"
-                    :class="contact.status"
-                    @click="changeSelectedUser(contact.id)"
+                    v-for="activeConversation in activeConversations"
+                    :key="activeConversation"
+                    :class="'online'"
+                    @click="changeCurrentActiveConversation(activeConversation.activeConversationID)"
                   >
-                    <img
-                      :src="contact.avatar"
+                    <i class="i-Male"></i>
+                    <!-- <img
+                      :src="activeConversation.avatar"
                       alt=""
                       class="avatar-sm rounded-circle mr-3"
-                    />
-                    <h6 class="">{{ contact.name }}</h6>
+                    /> -->
+                    <h6 class="">{{ activeConversation.recipientProfileName }} {{activeConversation.recipientPhoneNumber}}</h6>
                   </div>
                 </div>
               </vue-perfect-scrollbar>
             </div>
           </div>
 
-          <!-- Columna de conversaciones -->
+          <!-- Barra Superior -->
           <div class="chat-content-wrap sidebar-content">
             <div
               class="d-flex pl-3 pr-3 pt-2 pb-2 o-hidden box-shadow-1 chat-topbar"
@@ -82,102 +82,50 @@
                 <i class="icon-regular i-Right ml-0 mr-3"></i>
               </a>
               <div class="d-flex align-items-center">
-                <img
+                <!-- <img
                   :src="getSelectedUser.avatar"
                   alt=""
                   class="avatar-sm rounded-circle mr-2"
-                />
+                /> -->
+                <i class="i-Male"></i>
                 <p class="m-0 text-title text-16 flex-grow-1">
-                  {{ getSelectedUser.name }}
+                  {{ currentActiveConversation.recipientProfileName }} {{currentActiveConversation.recipientPhoneNumber}}
                 </p>
               </div>
             </div>
-            <vue-perfect-scrollbar
+
+            <!-- Barra Conversación -->
+            <vue-perfect-scrollbar ref="scrollRef"
               :settings="{ suppressScrollX: true, wheelPropagation: false }"
               class="chat-content perfect-scrollbar rtl-ps-none ps scroll"
             >
-              <div>
-                <div class="d-flex mb-30">
-                  <div class="message flex-grow-1">
+              <div v-for="cuurentActiveConversationMessage in currentActiveConversation.messages" :key="cuurentActiveConversationMessage">
+                <div class="d-flex mb-30" :class="GetOwner(cuurentActiveConversationMessage.owner)" >
+                  <div :style="getColorChat(cuurentActiveConversationMessage.owner)" class="message flex-grow-1">
                     <div class="d-flex">
-                      <p class="mb-1 text-title text-16 flex-grow-1">
-                        {{ getSelectedUser.name }}
+                      <p class="m-0" style="margin-left: 0; margin-right:auto;" v-if="cuurentActiveConversationMessage.owner != 'agent'">
+                        {{cuurentActiveConversationMessage.messageContent}}
                       </p>
-                      <span class="text-small text-muted">25 min ago</span>
-                    </div>
-                    <p class="m-0">
-                      Do you ever find yourself falling into the “discount trap?
-                    </p>
-                  </div>
-                  <img
-                    :src="getSelectedUser.avatar"
-                    alt=""
-                    class="avatar-sm rounded-circle ml-3"
-                  />
-                </div>
-
-                <div class="d-flex mb-30 user">
-                  <img
-                    src="@/assets/images/faces/1.jpg"
-                    alt=""
-                    class="avatar-sm rounded-circle mr-3"
-                  />
-                  <div class="message flex-grow-1">
-                    <div class="d-flex">
-                      <p class="mb-1 text-title text-16 flex-grow-1">Jhon Doe</p>
-                      <span class="text-small text-muted">24 min ago</span>
-                    </div>
-                    <p class="m-0">Lorem ipsum dolor sit amet.</p>
-                  </div>
-                </div>
-                <div class="d-flex mb-30">
-                  <div class="message flex-grow-1">
-                    <div class="d-flex">
-                      <p class="mb-1 text-title text-16 flex-grow-1">
-                        {{ getSelectedUser.name }}
+                      <span v-if="cuurentActiveConversationMessage.owner == 'agent'" style="margin-left: 0; margin-right:auto;" class="text-small text-muted">{{cuurentActiveConversationMessage.messageSentHour}}</span>
+                      <span v-else style="margin-left: auto; margin-right:0;" class="text-small text-muted">{{cuurentActiveConversationMessage.messageReceivedHour}}</span>
+                      <p class="m-0" style="margin-left: auto; margin-right:0;" v-if="cuurentActiveConversationMessage.owner == 'agent'">
+                        {{cuurentActiveConversationMessage.messageContent}}
                       </p>
-                      <span class="text-small text-muted">25 min ago</span>
                     </div>
-                    <p class="m-0">
-                      Do you ever find yourself falling into the “discount trap?
-                    </p>
-                  </div>
-                  <img
-                    :src="getSelectedUser.avatar"
-                    alt=""
-                    class="avatar-sm rounded-circle ml-3"
-                  />
-                </div>
-                <div class="d-flex mb-30 user">
-                  <img
-                    src="@/assets/images/faces/1.jpg"
-                    alt=""
-                    class="avatar-sm rounded-circle mr-3"
-                  />
-                  <div class="message flex-grow-1">
-                    <div class="d-flex">
-                      <p class="mb-1 text-title text-16 flex-grow-1">Jhon Doe</p>
-                      <span class="text-small text-muted">24 min ago</span>
-                    </div>
-                    <p class="m-0">Lorem ipsum dolor sit amet.</p>
                   </div>
                 </div>
               </div>
             </vue-perfect-scrollbar>
-
             <div class="pl-3 pr-3 pt-3 pb-3 box-shadow-1 chat-input-area">
-              <form class="inputForm">
                 <div class="form-group">
-                  <textarea
+                  <b-form-input
                     class="form-control form-control-rounded"
                     placeholder="Type your message"
-                    name="message"
-                    id="message"
-                    cols="30"
-                    rows="3"
-                    spellcheck="false"
-                  ></textarea>
+                    @keyup.enter="sendNewTextMessage()"
+                    v-model="newTextMessageContent"
+                  />
                 </div>
+                
                 <div class="d-flex">
                   <button @click="vistaItems = 'Productos'" class="btn btn-icon btn-rounded btn-primary mr-2">
                     <i class="i-Shopping-Cart"></i>
@@ -198,7 +146,6 @@
                     <i class="i-Add-File"></i>
                   </button>
                 </div>
-              </form>
             </div>
           </div>
         </div>
@@ -285,6 +232,8 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import axios from 'axios';
+const constants = require('@../../../src/constants.js'); 
+const webSocket = new WebSocket('ws:'+constants.routes.websocketAPI+'?agentID=1');
 
 export default {
   metaInfo: {
@@ -293,6 +242,31 @@ export default {
   },
   data() {
     return {
+      // Variables del chat -------
+      activeConversation: '',
+      activeConversations: [],
+      activeConversationsAsJSON: {},
+      currentActiveConversation: {},
+      updatedActiveConversationID: '',
+      
+      newTextMessageContent: '',
+
+      createNewConversationDialog: false,
+      newConversationRecipientPhoneNumber: '',
+      newConversationTextMessageContent: '',
+
+      emojis: [],
+
+      recordAudioDialog: false,
+      isRecording: false,
+      recordedTime: '0:00',
+      mediaRecorder: null,
+      recordedAudioFile: null,
+      startTime: '',
+      chunks: [],
+
+      file: null,
+      // Esta aqui variables del chat -------
       recentContacts: [],
       search: "",
       isMobile: false,
@@ -323,7 +297,76 @@ export default {
       ],
     };
   },
+
   methods: {
+    getColorChat(item){
+      if(item == 'agent'){
+        return "background-color:#d6ffb6";
+      } else
+      {
+        return "background-color:#dedede";
+      }
+
+    },
+    GetOwner(item){
+      if(item != 'agent'){
+        return "user";
+      } 
+    },
+    sendNewTextMessage(){
+      axios.get(constants.routes.backendAPI
+                +'/sendWhatsappMessage?'
+                +'type=text'
+                +'&recipientPhoneNumber='+this.currentActiveConversation.recipientPhoneNumber
+                +'&messageContent='+this.newTextMessageContent)
+      .then(() =>{ 
+        this.currentActiveConversation.messages[(Object.keys(this.currentActiveConversation.messages).length+1).toString()]={owner:'agent',messageContent:this.newTextMessageContent,messageType:'text',messageSentHour: Date().toString().slice(16,24)};
+        this.newTextMessageContent = '';
+        this.$nextTick(() => {
+        if (this.$refs.scrollRef) {
+            const psContainer = this.$refs.scrollRef.$el;
+            psContainer.scrollTop = psContainer.scrollHeight;
+          }
+        });
+      })
+      
+      .catch(error =>{
+        console.log(error);
+      })
+      
+    },
+    getAgentActiveConversations(){
+      axios.get(constants.routes.backendAPI+'/getAgentActiveConversations?agentID='+localStorage.getItem('agentID'))
+      .then(response =>{
+        this.activeConversations = [];
+        this.activeConversationsAsJSON = {};
+        for (var activeConversationID in response.data){
+          var activeConversation = response.data[activeConversationID];
+          activeConversation['activeConversationID'] = activeConversationID;
+          activeConversation['active'] = false;
+          this.activeConversations.push(activeConversation);
+          this.activeConversation = this.activeConversations[0].activeConversationID;
+        }
+        this.activeConversationsAsJSON = response.data;
+        if (this.updatedActiveConversationID != ''){
+          this.changeCurrentActiveConversation(this.updatedActiveConversationID);
+        } console.log(this.activeConversationsAsJSON)
+      })
+      .catch(error =>{
+        console.log(error);
+      })
+    },
+    changeCurrentActiveConversation (clickedActiveConversationID){
+      console.log(clickedActiveConversationID)
+      this.currentActiveConversation = this.activeConversationsAsJSON[clickedActiveConversationID];
+      this.$nextTick(() => {
+        if (this.$refs.scrollRef) {
+            const psContainer = this.$refs.scrollRef.$el;
+            psContainer.scrollTop = psContainer.scrollHeight;
+          }
+        });
+      
+    },
     ...mapActions(["changeSelectedUser"]),
     AgregarItem(item,variant = null){
       this.orden.push({
@@ -384,7 +427,28 @@ export default {
       });
     },
   },
+  mounted(){
+    localStorage.setItem("agentID","1");
+    this.emojis = constants.emojis;
+    this.getAgentActiveConversations();
 
+    webSocket.onmessage = (websocketMessage) => {
+      const websocketMessageJSON = JSON.parse(websocketMessage.data);
+      if (websocketMessageJSON['agentID'] == localStorage.getItem('agentID')){
+        this.$set(this.activeConversationsAsJSON[websocketMessageJSON['conversationID']].messages, websocketMessageJSON['messageID'], websocketMessageJSON['messageInformation']);
+
+        
+        this.$nextTick(() => {
+        if (this.$refs.scrollRef) {
+            const psContainer = this.$refs.scrollRef.$el;
+            psContainer.scrollTop = psContainer.scrollHeight;
+          }
+        });
+        var inboxAudio = new Audio(require('../../../assets/pageAssets/inbox.mp3'));
+        inboxAudio.play();
+      }
+    }
+  },
   created: function() {
     // console.log(this.getSelectedUser);
     // this.getCurrentUser.forEach(currentUser => {

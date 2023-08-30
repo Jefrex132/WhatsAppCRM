@@ -52,7 +52,8 @@
     "vuejs-smart-table": "0.0.5",
     "vuelidate": "^0.7.6",
     "vuetable-2": "^1.7.5",
-    "vuex": "^3.6.0"
+    "vuex": "^3.6.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.10",
